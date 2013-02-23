@@ -153,30 +153,25 @@ class Player:
         turn = self
         
         for m in board.legalMoves( self ):
-            #if ply == 0:
-            #    return (self.score(board), m)
-            #if board.gameOver():
-            #    return (-1, -1)  # Can't make a move, the game is over
             nb = deepcopy(board)
             nb.makeMove(self, m)
             #opp = Player(self.opp, self.type, self.ply)
-            s, bestMove = self.alphaBetaMaxValue(nb, ply-1, turn, alpha, beta)#****#
-            
+            s, bestMove = self.alphaBetaMaxValue(nb, ply-1, turn, alpha, beta)#****#  
             if s > score:
                 move = m
                 score = s
-            
-        print "Alpha Beta Move in progress"
-        return -1
-        #return (score, move)
+        #print "Alpha Beta Move in progress"
+        #return -1
+        return (score, move)
 
     def alphaBetaMaxValue(self, board, ply, turn, alpha, beta):
         """ 
         Find the alpha-betaMax value for the next move for this player
         at a given board configuation Returns (score, oppMove)
         """
-        if board.gameOver():
-            return (turn.score( board ), -1)
+     
+        if board.gameOver():#terminal test
+            return turn.score( board ), -1
         
         score = -INFINITY
         move = -1
@@ -190,12 +185,15 @@ class Player:
             # Copy the board so that we don't ruin it
             nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
-            s, someMove = max(opponent.alphaBetaMinValue(nextBoard, ply-1, turn))
-            
-            if s > score:
+            someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
+
+            if someScore > score:
+                score = someScore
                 move = m
-                score = s
-        
+            if score >= beta:
+                return (score, move)
+            alpha = max(alpha, score)
+
         return (score, move)
     
     def alphaBetaMinValue( self, board, ply, turn, alpha, beta):
@@ -207,7 +205,7 @@ class Player:
         if board.gameOver():#terminal test
             return turn.score( board ), -1
         
-        score = INFINITY
+        score = -INFINITY
         move = -1
         
         for m in board.legalMoves( self ):
@@ -219,14 +217,15 @@ class Player:
             # Copy the board so that we don't ruin it
             nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
-            s, worstMove = min(score, opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta))
-            if s <= alpha
-                return (score, move)
-            beta = min(beta, s)
-            if s < score:
-                score = s
+            someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
+
+            if someScore < score:
+                score = someScore
                 move = m
-        
+            if score <= alpha:
+                return (score, move)
+            beta = min(beta, score)
+
         return (score, move)
                 
     def chooseMove( self, board ):
