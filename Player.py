@@ -122,12 +122,17 @@ class Player:
     # to improve on this function.
     def score(self, board):
         """ Returns the score for this player given the state of the board """
+        score = 0.0
         if board.hasWon( self.num ):
-            return 100.0
+            score = score + 100.0
         elif board.hasWon( self.opp ):
-            return 0.0
-        else:
-            return 50.0
+            score = score +100.0
+        for n in range(6):
+            score -= board.p2Cups[n]
+            score += board.p1Cups[n]
+        score += board.scoreCups[0]
+        score -= board.scoreCups[1]
+        return score
 
     ###########################################################
     # You should not modify anything before this point.
