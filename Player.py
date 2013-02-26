@@ -165,8 +165,6 @@ class Player:
             if s > score:
                 move = m
                 score = s
-        #print "Alpha Beta Move in progress"
-        #return -1
         return (score, move)
 
     def alphaBetaMaxValue(self, board, ply, turn, alpha, beta):
@@ -193,8 +191,7 @@ class Player:
             someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
 
             if someScore > score:
-                score = someScore
-                move = m
+                score = someScore; move = m
             if score >= beta:
                 return (score, move)
             alpha = max(alpha, score)
@@ -210,23 +207,21 @@ class Player:
         if board.gameOver():#terminal test
             return turn.score( board ), -1
         
-        score = -INFINITY
-        move = -1
+        score = INFINITY; move = -1
         
         for m in board.legalMoves( self ):
-            if ply == 0:
+            if ply == 0: # if we reach the max ply
                 return (turn.score( board ), m)  
             
-            # make a new player to play the other side
+            # make a new player to play the other side in this case the first player...
             opponent = Player(self.opp, self.type, self.ply)
             # Copy the board so that we don't ruin it
             nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
-            someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
+            someScore, someMove = opponent.alphaBetaMinValue(nextBoard, ply-1, turn, alpha, beta)
 
             if someScore < score:
-                score = someScore
-                move = m
+                score = someScore; move = m
             if score <= alpha:
                 return (score, move)
             beta = min(beta, score)
