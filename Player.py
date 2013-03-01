@@ -149,7 +149,7 @@ class Player:
     # and/or a different move search order.
     # 
     # Do NOT change the number of parameters, function name, etc.
-     def alphaBetaMove( self, board, ply):
+    def alphaBetaMove( self, board, ply):
         """ Choose a move with alpha beta pruning """
         move = -1
         alpha = -INFINITY
@@ -260,7 +260,7 @@ class MancalaPlayer(Player):
     def customMove(self, board, ply):
         move = -1; alpha = -INFINITY
         beta = INFINITY; score = -INFINITY
-        turn = self
+        turn = self; nb = deepcopy(board)
 
         return self.customMax(nb, ply, turn, alpha, beta)#****#  
 
@@ -276,7 +276,7 @@ class MancalaPlayer(Player):
         score = -INFINITY; move = -1
         
         nextBoard = deepcopy(board)
-        for i in range(5,-1,-1)
+        for i in range(6,-1,-1)
             if(board.getPlayersCups(self.num[i] == (6-i)) ):
                 nextBoard.makeMove(self, i)
 
@@ -288,7 +288,7 @@ class MancalaPlayer(Player):
             opponent = Player(self.opp, self.type, self.ply)
             # Copy the board so that we don't ruin it
             nextBoard.makeMove( self, m )
-            someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
+            someScore, someMove = opponent.customMin(nextBoard, ply-1, turn, alpha, beta)
 
             if someScore > score:
                 score = someScore; move = m
@@ -301,7 +301,7 @@ class MancalaPlayer(Player):
     def customMin( self, board, ply, turn, alpha, beta):
         """
         Find the minimax value for the next move for this player
-        at a given board configuation
+        at a given board configuation, looking for multiple moves first
         """
         
         if board.gameOver():#terminal test
@@ -318,7 +318,7 @@ class MancalaPlayer(Player):
             # Copy the board so that we don't ruin it
             nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
-            someScore, someMove = opponent.alphaBetaMinValue(nextBoard, ply-1, turn, alpha, beta)
+            someScore, someMove = opponent.customMax(nextBoard, ply-1, turn, alpha, beta)
 
             if someScore < score:
                 score = someScore; move = m
