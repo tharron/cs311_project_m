@@ -149,25 +149,122 @@ class Player:
     # and/or a different move search order.
     # 
     # Do NOT change the number of parameters, function name, etc.
-    def alphaBetaMove( self, board, ply):
+     def alphaBetaMove( self, board, ply):
         """ Choose a move with alpha beta pruning """
         move = -1
         alpha = -INFINITY
         beta = INFINITY
         score = -INFINITY
         turn = self
-        
-        for m in board.legalMoves( self ):
-            nb = deepcopy(board)
-            nb.makeMove(self, m)
-            #opp = Player(self.opp, self.type, self.ply)
-            s, bestMove = self.alphaBetaMaxValue(nb, ply-1, turn, alpha, beta)#****#  
-            if s > score:
-                move = m
-                score = s
-        return (score, move)
 
+        nb = deepcopy(board)
+        return self.alphaBetaMaxValue(nb, ply, turn, alpha, beta)
+       
     def alphaBetaMaxValue(self, board, ply, turn, alpha, beta):
+        """
+        Find the alpha-betaMax value for the next move for this player
+        at a given board configuation Returns (score, oppMove)
+        """
+        if board.gameOver():#terminal test
+            return (turn.score( board ), -1)
+       
+        score = -INFINITY
+        move = -1
+       
+        for m in board.legalMoves( self ):
+            if ply == 0:
+                return (turn.score( board ), m) 
+           
+            # make a new player to play the other side
+            opponent = Player(self.opp, self.type, self.ply)
+            # Copy the board so that we don't ruin it
+            nextBoard = deepcopy(board)
+            nextBoard.makeMove( self, m )
+            someScore, someMove = opponent.alphaBetaMinValue(nextBoard, ply-1, turn, alpha, beta)
+
+            if someScore > score:
+                score = someScore
+                move = m
+            if score >= beta:
+                return (score, move)
+            alpha = max(alpha, score)
+        return (score, move)
+   
+    def alphaBetaMinValue( self, board, ply, turn, alpha, beta):
+        """
+        Find the minimax value for the next move for this player
+        at a given board configuation
+        """
+        if board.gameOver():#terminal test
+            return turn.score( board ), -1
+       
+        score = INFINITY
+        move = -1
+       
+        for m in board.legalMoves( self ):
+            if ply == 0:
+                return (turn.score( board ), m) 
+           
+            # make a new player to play the other side
+            opponent = Player(self.opp, self.type, self.ply)
+            # Copy the board so that we don't ruin it
+            nextBoard = deepcopy(board)
+            nextBoard.makeMove( self, m )
+            someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
+
+            if someScore < score:
+                score = someScore
+                move = m
+            if score <= alpha:
+                return (score, move)
+            beta = min(beta, score)
+        return (score, move)
+               
+    def chooseMove( self, board ):
+        """ Returns the next move that this player wants to make """
+        if self.type == self.HUMAN:
+            move = input("Please enter your move:")
+           
+            while not board.legalMove(self, move):
+                print move, "is not valid"
+                move = input( "Please enter your move" )
+           
+            return move
+        elif self.type == self.RANDOM:
+            move = choice(board.legalMoves(self))
+            print "chose move", move
+            return move
+        elif self.type == self.MINIMAX:
+            val, move = self.minimaxMove( board, self.ply )
+            print "Player "+str(self.num)+"chose move", move, " with value", val
+            return move
+        elif self.type == self.ABPRUNE:
+            val, move = self.alphaBetaMove( board, self.ply)
+            print "Player "+str(self.num)+"chose move", move, " with value", val
+            return move
+        elif self.type == self.CUSTOM:
+            val, move = self.customMove(board, self.ply)
+            print "Player "+str(self.num)+"chose move", move, " with value", val
+            return move
+        else:
+            print "Unknown player type"
+            return -1
+
+
+# Note, you should change the name of this player to be a custom name
+# that identifies you or your team.
+class MancalaPlayer(Player):
+    """ Defines a player that knows how to evaluate a Mancala gameboard
+        intelligently """
+
+    def customMove(self, board, ply):
+        move = -1; alpha = -INFINITY
+        beta = INFINITY; score = -INFINITY
+        turn = self
+
+        return self.customMax(nb, ply, turn, alpha, beta)#****#  
+
+    def customMax(self, board, ply, turn, alpha, beta):
         """ 
         Find the alpha-betaMax value for the next move for this player
         at a given board configuation Returns (score, oppMove)
@@ -176,9 +273,13 @@ class Player:
         if board.gameOver():#terminal test
             return turn.score( board ), -1
         
-        score = -INFINITY
-        move = -1
+        score = -INFINITY; move = -1
         
+        nextBoard = deepcopy(board)
+        for i in range(5,-1,-1)
+            if(board.getPlayersCups(self.num[i] == (6-i)) ):
+                nextBoard.makeMove(self, i)
+
         for m in board.legalMoves( self ):
             if ply == 0:
                 return (turn.score( board ), m)  
@@ -186,7 +287,6 @@ class Player:
             # make a new player to play the other side
             opponent = Player(self.opp, self.type, self.ply)
             # Copy the board so that we don't ruin it
-            nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
             someScore, someMove = opponent.alphaBetaMaxValue(nextBoard, ply-1, turn, alpha, beta)
 
@@ -198,7 +298,7 @@ class Player:
 
         return (score, move)
     
-    def alphaBetaMinValue( self, board, ply, turn, alpha, beta):
+    def customMin( self, board, ply, turn, alpha, beta):
         """
         Find the minimax value for the next move for this player
         at a given board configuation
@@ -227,53 +327,10 @@ class Player:
             beta = min(beta, score)
 
         return (score, move)
-                
-    def chooseMove( self, board ):
-        """ Returns the next move that this player wants to make """
-        if self.type == self.HUMAN:
-            move = input("Please enter your move:")
-            
-            while not board.legalMove(self, move):
-                print move, "is not valid"
-                move = input( "Please enter your move" )
-            
-            return move
-        elif self.type == self.RANDOM:
-            move = choice(board.legalMoves(self))
-            print "chose move", move
-            return move
-        elif self.type == self.MINIMAX:
-            val, move = self.minimaxMove( board, self.ply )
-            print "chose move", move, " with value", val
-            return move
-        elif self.type == self.ABPRUNE:
-            val, move = self.alphaBetaMove( board, self.ply)
-            print "chose move", move, " with value", val
-            return move
-        elif self.type == self.CUSTOM:
-            # TODO: Implement a custom player
-            # You should fill this in with a call to your best move choosing
-            # function.  You may use whatever search algorithm and scoring
-            # algorithm you like.  Remember that your player must make
-            # each move in about 10 seconds or less.
-            print "Custom player not yet implemented"
-            return -1
-        else:
-            print "Unknown player type"
-            return -1
-
-
-# Note, you should change the name of this player to be a custom name
-# that identifies you or your team.
-class MancalaPlayer(Player):
-    """ Defines a player that knows how to evaluate a Mancala gameboard
-        intelligently """
-
     def score(self, board):
         """ Evaluate the Mancala board for this player """
-        # Currently this function just calls Player's score
-        # function.  You should replace the line below with your own code
-        # for evaluating the board
-        print "Calling score in MancalaPlayer"
-        return Player.score( self, board )
+        
+
+       # print "Calling score in MancalaPlayer"
+       # return Player.score( self, board )
         
