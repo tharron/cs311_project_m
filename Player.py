@@ -309,6 +309,11 @@ class MancalaPlayer(Player):
         
         score = INFINITY; move = -1
         
+        nextBoard = deepcopy(board)
+        for i in range(6,-1,-1)
+            if(board.getPlayersCups(self.num[i] == (6-i)) ):
+                nextBoard.makeMove(self, i)
+
         for m in board.legalMoves( self ):
             if ply == 0: # if we reach the max ply
                 return (turn.score( board ), m)  
@@ -316,7 +321,6 @@ class MancalaPlayer(Player):
             # make a new player to play the other side in this case the first player...
             opponent = Player(self.opp, self.type, self.ply)
             # Copy the board so that we don't ruin it
-            nextBoard = deepcopy(board)
             nextBoard.makeMove( self, m )
             someScore, someMove = opponent.customMax(nextBoard, ply-1, turn, alpha, beta)
 
